@@ -55,25 +55,26 @@ class DuplicateFileCleaner:
                 self.update_progress()
     
     def reduceDuplicatesBySize(self):
-        self.duplicates = list(filter(lambda s: len(s[1]) > 1, self.files_by_size.items()))
+        self.duplicates = dict(filter(lambda s: len(s[1]) > 1, self.files_by_size.items()))
         print(f'Found {len(self.duplicates)} duplicates by file size.')
         return self.duplicates
     
     def reduceDuplicatesByHash(self):
         current_dup_number = 1
-        for dup in self.duplicates:
-            hashes = []
+        for dup in self.duplicates.items():
+            hashes = list()
             to_remove = []
             i = 0
             for filename in dup[1]:
-                hashes.append(self.hashfile(dup[1][i]))
+                hashes.append(self.hashfile(filename))
                 i = i + 1
             for i, h in enumerate(hashes):
                 if hashes.count(h) == 1:
                     to_remove = dup[1][i]
             if to_remove:
-                # dup[1] = [ele for ele in dup[1] if ele not in to_remove]
-                dup = [dup[0], list(filter(lambda s: s not in to_remove, dup[1]))]
+                temp = [dup[0], list(filter(lambda s: s not in to_remove, dup[1]))]
+                dup = tuple(temp)
+                self.duplicates[dup[0]] = dup[1]
             percent = str(round((current_dup_number/len(self.duplicates))*100, 3))
             print('##### ' + f'{percent}%'.center(10) + ' #####', end='\r')
             current_dup_number = current_dup_number + 1
@@ -82,24 +83,33 @@ class DuplicateFileCleaner:
         print(f'Found {len(self.duplicates)} by hash.')
         return self.duplicates
 
-def clean(duplicates):
-    print('Enter the number for the file to keep.  All others will be deleted.')
-    for dup in duplicates.items():
-        string_list = ["%i: %s" % (index, value) for index, value in enumerate(duplicates)]
-        # print(string_list)
-        value = input(string_list)
-        for item in duplicates[1]
+    def clean(self):
+        to_delete = []
+        for dup in self.duplicates.items():
+            print('Enter the number for the file to keep.  All others will be deleted.')
+            print('\n'.join('{}: {}'.format(*k) for k in enumerate(dup[1])))
+            value = input('Choice: ')
+            dup[1].pop(int(value))
+            to_delete = to_delete + dup[1]
+
+        for filepath in to_delete:
+            print(f"Deleting: {filepath}")
+            if not is_test:
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                else:
+                    print(f"The file does not exist: {filepath}")
 
 if __name__ == '__main__':
-    dir = "\\\\SYNOLOGYNAS\photo\sylvia"
-    if not os.path.isdir(dir):
-        print(f'Path not found: {dir}')
+    search_root = "./test"
+    if not os.path.isdir(search_root):
+        print(f'Path not found: {search_root}')
         exit()
     is_test = True
 
     start = datetime.now()
     file_count = 0
-    for root, dirs, file_names in os.walk(dir):
+    for root, dirs, file_names in os.walk(search_root):
         for dirpath,_,filenames in os.walk(root):
             log(f"{root}")
             dir_count = dir_count + 1
@@ -109,15 +119,14 @@ if __name__ == '__main__':
     print(f'Total files: {file_count}')
 
     fixer = DuplicateFileCleaner(is_test, file_count)
-    for root, dirs, file_names in os.walk(dir):
+    for root, dirs, file_names in os.walk(search_root):
         fixer.buildFileListBySize(root)
         
     print('Finding duplicates by file size.')
     dups = fixer.reduceDuplicatesBySize()
     print('Reducing file size matches with hash comparison.')
     dups = fixer.reduceDuplicatesByHash()
-    # print(f'### Duplicates: \n{fixer.duplicateFixer()}')
     print(f'### Errors: \n{fixer.errors}')
     print(f'Elapsed time: {datetime.now() - start}')
     print(fixer.current_file_number)
-    clean(dup)
+    fixer.clean()
