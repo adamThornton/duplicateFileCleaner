@@ -8,8 +8,16 @@ Scans a provide folder and subfolders to find duplicate files.
     3. The remain list is the list of duplicates and is then interated again to move the files to a staging location prior to the user deleting. A CLI will allow the user to choice which of the duplicates to keep.  The other will be moved.
 
 ## Usage:
-    1. Set **search_root** to the path to start searching from.
-    2. Set **target_location** to the path to where files will be moved to.
-    3. Set **is_test** to test the behavior of the algorithm without moving the files.
-    4. ***Optional*** Set **auto_move** if you don't want to choose the file to keep from the duplicates and instead automatically keep the first one and move the rest.
-    5. ***Optional*** Set **log_enabled** to print more verbose messages in the terminal during execution.
+Set these variables to configure the script.
+1. *search_root*
+<br>Set to the path to start searching from.
+1. *target_location*
+<br>Set  to the path to where files will be moved to.
+1. *is_test*
+<br>Set  to test the behavior of the algorithm without moving the files.
+1. *auto_move*
+<br>***Optional:*** Set  if you don't want to choose the file to keep from the duplicates and instead automatically keep the first one and move the rest.
+1. *log_enabled*
+<br>***Optional:*** Set  to print more verbose messages in the terminal during execution.
+
+Run duplicateFileCleaner.py
