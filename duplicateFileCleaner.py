@@ -6,7 +6,6 @@ import hashlib
 import shutil
 
 log_enabled = False
-dir_count: int = 0
 
 def log(message: str):
     if log_enabled:
@@ -84,14 +83,16 @@ class DuplicateFileCleaner:
         print(f'Found {len(self.duplicates)} by hash.')
         return self.duplicates
 
-    def clean(self, target_location):
+    def clean(self, target_location, auto_move: bool = False):
         for dup in self.duplicates.items():
             to_delete = []
             print('Enter the number for the file to keep.  All others will be deleted.')
             print('\n'.join('{}: {}'.format(*k) for k in enumerate(dup[1])))
-            value = input('Choice: ')
-            if value == '':
-                value = '0'
+            value = '0'
+            if not auto_move:
+                value = input('Choice: ')
+                if value == '':
+                    value = '0'
             dup[1].pop(int(value))
             to_delete = to_delete + dup[1]
 
@@ -105,8 +106,9 @@ class DuplicateFileCleaner:
                         print(f"The file does not exist: {filepath}")
 
 if __name__ == '__main__':
-    search_root = '.\\Test'
+    search_root = ".\\test"
     target_location = "C:\\ToDelete\\"
+    auto_move = False
     if not os.path.isdir(search_root):
         print(f'Path not found: {search_root}')
         exit()
@@ -114,6 +116,7 @@ if __name__ == '__main__':
 
     start = datetime.now()
     file_count = 0
+    dir_count = 0
     for root, dirs, file_names in os.walk(search_root):
         for dirpath,_,filenames in os.walk(root):
             log(f"{root}")
@@ -134,4 +137,4 @@ if __name__ == '__main__':
     print(f'### Errors: \n{fixer.errors}')
     print(f'Elapsed time: {datetime.now() - start}')
     print(fixer.current_file_number)
-    fixer.clean(target_location)
+    fixer.clean(target_location, auto_move)
