@@ -1,11 +1,11 @@
 # Duplicate File Cleaner
-Scans a provide folder and subfolders to find duplicate files.
+Scans a provided folder and subfolders to find and move duplicate files. No files are deleted.
 
 ## Approach: 
 
     1. Makes a dictionary of file sizes with a list of files for each file size.  This identifies duplicates by file size.
     2. Iterates through the dictionary and generates hashes on the file size based list of duplicates and removes items with a hash that only appears once.  This removes files from the dictionary that were a file size match but, indeed, are not an actual duplicate.
-    3. The remain list is the list of duplicates and is then interated again to move the files to a staging location prior to the user deleting. A CLI will allow the user to choice which of the duplicates to keep.  The other will be moved.
+    3. The remain list is the list of duplicates and is then iterated again to move the files to a staging location prior to the user deleting. A CLI will allow the user to choose which of the duplicates to keep.  The other will be moved.
 
 ## Usage:
 Set these variables to configure the script.
