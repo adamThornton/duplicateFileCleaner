@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import hashlib
+import ntpath
 import shutil
 
 log_enabled = False
@@ -61,6 +62,7 @@ class DuplicateFileCleaner:
     
     def reduceDuplicatesByHash(self):
         current_dup_number = 1
+        non_dups = []
         for dup in self.duplicates.items():
             hashes = list()
             to_remove = []
@@ -73,12 +75,17 @@ class DuplicateFileCleaner:
                     to_remove = dup[1][i]
             if to_remove:
                 temp = [dup[0], list(filter(lambda s: s not in to_remove, dup[1]))]
-                dup = tuple(temp)
-                self.duplicates[dup[0]] = dup[1]
+                if len(temp[1]) > 1:
+                    dup = tuple(temp)
+                    self.duplicates[dup[0]] = dup[1]
+                else:
+                    non_dups.append(dup[0])
             percent = str(round((current_dup_number/len(self.duplicates))*100, 3))
             print('##### ' + f'{percent}%'.center(10) + ' #####', end='\r')
             current_dup_number = current_dup_number + 1
         
+        # Remove the single file items from the duplicates dictionary.
+        [self.duplicates.pop(key) for key in non_dups]
         print('##### ' + 'Done'.center(10) + ' #####')
         print(f'Found {len(self.duplicates)} by hash.')
         return self.duplicates
@@ -86,7 +93,7 @@ class DuplicateFileCleaner:
     def clean(self, target_location, auto_move: bool = False):
         for dup in self.duplicates.items():
             to_delete = []
-            print('Enter the number for the file to keep.  All others will be deleted.')
+            print('Enter the number for the file to keep.  All others will be moved.')
             print('\n'.join('{}: {}'.format(*k) for k in enumerate(dup[1])))
             value = '0'
             if not auto_move:
@@ -100,8 +107,8 @@ class DuplicateFileCleaner:
                 print(f"Moving: {filepath}")
                 if not is_test:
                     if os.path.exists(filepath):
-                        # os.remove(filepath)
-                        shutil.move(filepath, target_location)
+                        filename = ntpath.basename(filepath)
+                        shutil.move(filepath, f'{target_location}\\{filename}')
                     else:
                         print(f"The file does not exist: {filepath}")
 
@@ -136,5 +143,4 @@ if __name__ == '__main__':
     dups = fixer.reduceDuplicatesByHash()
     print(f'### Errors: \n{fixer.errors}')
     print(f'Elapsed time: {datetime.now() - start}')
-    print(fixer.current_file_number)
     fixer.clean(target_location, auto_move)
